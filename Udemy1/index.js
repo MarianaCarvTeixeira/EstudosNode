@@ -2,15 +2,42 @@ const express = require("express");
 const fs = require("fs");
 const app = express();
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.get("/todos", (request, response) => {
+  const showPending = request.query.showPending;
+
   fs.readFile("./store/todos.json", "utf-8", (err, data) => {
     if (err) {
       return response.status(500).send("Desculpe, algo deu errado!!");
     }
     const todos = JSON.parse(data);
-    return response.json({ todos: todos });
-  })
-})
+
+    if (showPending !== "1") {
+      return response.json({ todos: todos });
+    } else {
+      return response.json({
+        todos: todos.filter((t) => {
+          return t.complete === false;
+        }),
+      });
+    }
+  });
+});
+
+app.post("/todo", (request, response) => {
+  if (!request.body.name) {
+    return response.status(400).send("O nome é obrigatório");
+  }
+  fs.readFile("./store/todos.json", "utf-8", (err, data) => {
+    if (err) {
+      return response.status(500).send("Desculpe, algo deu errado!!");
+    }
+    const todos=JSON.parse(data)
+    const maxId = Math.max.apply(math, todos.maps(t=>{return t.id}))
+  });
+});
 
 app.put("/todos/:id/complete", (request, response) => {
   const id = request.params.id;
@@ -34,11 +61,11 @@ app.put("/todos/:id/complete", (request, response) => {
 
     todos[todoIndex].complete = true;
 
-    fs.writeFile('./store/todos.json', JSON.stringify(todos), ()=>{
-        return response.json({'status': 'Ok'})
-    })
-  })
-})
+    fs.writeFile("./store/todos.json", JSON.stringify(todos), () => {
+      return response.json({ status: "Ok" });
+    });
+  });
+});
 
 app.listen(3000, () => {
   console.log("aplicação rodando na porta http://localhost:3000/todos");
