@@ -34,8 +34,21 @@ app.post("/todo", (request, response) => {
     if (err) {
       return response.status(500).send("Desculpe, algo deu errado!!");
     }
-    const todos=JSON.parse(data)
-    const maxId = Math.max.apply(math, todos.maps(t=>{return t.id}))
+    const todos = JSON.parse(data);
+    const maxId = Math.max.apply(
+      Math,
+      todos.map((t) => {
+        return t.id;
+      })
+    );
+    todos.push({
+      id: maxId + 1,
+      complete: false,
+      name: request.body.name,
+    });
+    fs.writeFile("./store/todos.json", JSON.stringify(todos), () => {
+      return response.json({ status: "Ok" });
+    });
   });
 });
 
